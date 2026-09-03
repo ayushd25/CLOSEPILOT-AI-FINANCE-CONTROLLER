@@ -1,0 +1,59 @@
+# ===== Environment / secrets =====
+# Never commit real credentials.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ===== Python / backend =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.coverage
+
+# ===== Node / frontend =====
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# ===== Logs / runtime =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# ===== Data (ephemeral mongod dumps, fixtures) =====
+data/*.dump
+data/dump/
+data/mongod-*.pid
+
+# ===== IDE / editor =====
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ===== Misc =====
+*.orig
+*.rej

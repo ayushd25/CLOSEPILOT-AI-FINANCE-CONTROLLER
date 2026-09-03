@@ -1,0 +1,253 @@
+# ClosePilot - Autonomous Finance Controller
+
+**Models investigate. Rules authorize. Evidence proves.**
+
+ClosePilot is an AI Finance Controller for **Razorpay Buildathon 2026 (Track 04)**. It ingests Razorpay Test Mode financial data plus controlled synthetic data, reconciles payments / settlements / bank transactions / invoices / fees / taxes / refunds / adjustments, investigates difficult discrepancies with an AI investigator, and safely auto-closes only cases that satisfy deterministic evidence and policy controls.
+
+---
+
+## Core principle
+
+**LLM ≠ authority.**
+
+The LLM may investigate, interpret, explain, rank evidence, and propose an action. It must **never** directly mutate financial records or decide authorization.
+
+Required flow:
+
+```
+LLM → typed proposal → schema validation → policy engine → authorized service → database
+```
+
+- Every case goes through **rule-based validation** before any auto-close.
+- All actions are recorded in an **append-only audit / evidence ledger**.
+- An **evaluation lab** benchmarks the deterministic engine against simple baselines.
+
+---
+
+## Architecture
+
+```text
+Razorpay Test Mode APIs ─────┐
+                             ├→ Integration Layer
+Synthetic Generator ─────────┘
+                             ↓
+                    Canonical Financial Model
+                             ↓
+                    Normalization / Validation
+                             ↓
+                    Candidate Generation
+                             ↓
+                 Deterministic Reconciliation
+                       ↙              ↘
+                 matched           ambiguous
+                    ↓                  ↓
+              evidence              AI Investigator
+                    ↓                  ↓
+                 policy ← typed proposal
+                    ↓
+          ┌─────────┴─────────┐
+          ↓                   ↓
+      Auto-close          Human Review
+          └─────────┬─────────┘
+                    ↓
+             Audit / Evidence Ledger
+                    ↓
+              Evaluation Engine
+```
+
+---
+
+## Repository structure
+
+```text
+closepilot/
+  apps/
+    api/          # FastAPI backend (Python 3.12+, Motor/Mongo, LangChain+Groq)
+    web/          # Next.js frontend (Next 15, TS, Tailwind, Recharts, React Flow)
+  packages/
+    shared/       # Shared types
+  data/           # Local data / mongod dumps (gitignored)
+  docker/         # Docker helpers
+  docs/           # Architecture, Razorpay, AI-safety, evaluation, demo guides
+  tests/          # Backend pytest suite
+  docker-compose.yml
+  .env.example
+  README.md
+```
+
+---
+
+## Quick start (Docker — recommended)
+
+The easiest way to run the whole stack.
+
+### 1. Clone & configure
+
+```bash
+git clone https://github.com/Priyanshu-CODERX/ai-finance-controller.git
+cd ai-finance-controller
+
+# Create env file from template
+cp .env.example .env
+```
+
+### 2. (Optional) Add credentials
+
+Edit `.env` and set optional secrets (the app runs fine without them, but features are best-effort):
+
+```env
+# AI Investigator (enables the LLM; otherwise cases degrade to HUMAN_REVIEW)
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Razorpay Test Mode (enables live ingestion; otherwise use SYNTHETIC/HYBRID)
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxx
+RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+> **Security note:** secrets live only in `.env` (gitignored). Keys are never exposed to the frontend, logs, the LLM, or the audit ledger.
+
+### 3. Build and run
+
+```bash
+docker compose up --build
+```
+
+This starts:
+
+| Service   | URL                       | Notes                                  |
+|-----------|---------------------------|----------------------------------------|
+| Frontend  | http://localhost:3000    | Next.js UI                             |
+| API       | http://localhost:8000    | FastAPI (Swagger at `/docs`)           |
+| MongoDB   | mongodb://localhost:27017| Persisted in the `mongodb_data` volume |
+
+Wait for all containers to be **healthy**, then open **http://localhost:3000**.
+
+### 4. Stop
+
+```bash
+docker compose down
+```
+
+To also delete the MongoDB data volume:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## Running locally (no Docker)
+
+Requires MongoDB running locally (or a remote `MONGODB_URI`).
+
+### Backend
+
+```bash
+cd apps/api
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# copy .env to set credentials (see env section below)
+cp ../../.env.example ../../.env
+
+uvicorn app.main:app --reload            # http://localhost:8000
+```
+
+### Frontend
+
+```bash
+cd apps/web
+npm install
+npm run dev                              # http://localhost:3000
+```
+
+### MongoDB (local)
+
+```bash
+mkdir -p data
+mongod --dbpath ./data
+```
+
+---
+
+## Environment variables
+
+Copy `.env.example` to `.env` at the repo root. All values are optional except the connection defaults shown.
+
+| Variable                | Default                    | Purpose                                            |
+|-------------------------|----------------------------|----------------------------------------------------|
+| `MONGODB_URI`           | `mongodb://localhost:27017`| MongoDB connection string                         |
+| `MONGODB_DB`            | `closepilot`               | Database name                                     |
+| `GROQ_API_KEY`          | *(empty)*                  | Enables the AI investigator                        |
+| `GROQ_MODEL`            | `llama-3.3-70b-versatile`  | LLM model                                         |
+| `GROQ_TEMPERATURE`      | `0`                        | Deterministic output                              |
+| `RAZORPAY_MODE`         | `test`                     | `test` or `live` (always keep `test` here)        |
+| `RAZORPAY_KEY_ID`       | *(empty)*                  | Razorpay Test Mode key id                         |
+| `RAZORPAY_KEY_SECRET`   | *(empty)*                  | Razorpay Test Mode key secret                     |
+| `CORS_ORIGINS`          | `http://localhost:3000`    | Allowed CORS origins                              |
+
+---
+
+## Source modes
+
+ClosePilot never pretends to be live when it isn't.
+
+- `RAZORPAY_ONLY` — actual records pulled from a connected Razorpay Test Mode account; reports real fetched counts.
+- `SYNTHETIC_ONLY` — controlled synthetic cases with hidden ground truth (for the evaluation lab).
+- `HYBRID` — Razorpay Test Mode records plus synthetic augmentation (**preferred demo mode**).
+
+---
+
+## Using the app
+
+1. **Command Center** (`/`) — live dashboard metrics.
+2. **Sources** (`/sources`) — generate synthetic data; optionally configure and run a Razorpay Test Mode sync.
+3. **Reconciliation** (`/reconciliation`) — run reconciliation over ingested data; view cases.
+4. **Exceptions** (`/exceptions`) — prioritized unresolved cases.
+5. **Exception Investigator** (`/exceptions/[caseId]`) — AI investigation + policy decision + approve / reject / keep-as-exception.
+6. **Evidence** (`/evidence`) — provenance graph (React Flow).
+7. **Evaluation** (`/evaluation`) — benchmark ClosePilot vs `exact_id`, `amount_date`, `fuzzy` baselines.
+8. **Audit** (`/audit`) — immutable, append-only event timeline.
+
+---
+
+## Testing
+
+### Backend (pytest)
+
+```bash
+cd apps/api
+source .venv/bin/activate
+python -m pytest            # 52 tests (unit + integration)
+```
+
+Integration tests hit MongoDB and auto-skip if it is not reachable.
+
+### Frontend (vitest + ESLint + typecheck)
+
+```bash
+cd apps/web
+npm run lint                # ESLint
+npm run typecheck           # tsc --noEmit
+npm test                    # Vitest
+npm run build               # production build
+```
+
+---
+
+## Documentation
+
+See `docs/` for detailed guides:
+
+- `architecture.md` — system design and data flow
+- `razorpay.md` — Razorpay Test Mode integration
+- `ai-safety.md` — how LLM authority is constrained
+- `evaluation.md` — evaluation-lab methodology
+- `demo.md` — end-to-end demo script
+
+---
+
+## License
+
+Private / course project — see repository owner.
