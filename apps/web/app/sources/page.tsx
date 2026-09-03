@@ -1,84 +1,67 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { Database, RefreshCw } from "lucide-react";
 
-interface RazorpayStatus {
-  connected: boolean;
-  mode: string;
-  payments: number;
-  settlements: number;
-  recon_events: number;
+interface Dataset {
+  dataset_id: string;
+  name?: string;
+  n_cases?: number;
+  seed?: number;
+  created_at?: string;
+  n_records?: number;
+  ground_truth_count?: number;
 }
 
-interface SyncRun {
-  sync_run_id: string;
-  source: string;
-  started_at: string;
-  completed_at: string;
-  status: string;
-  fetched: number;
-  inserted: number;
-  updated: number;
-  errors: number;
-  duration_seconds: number;
-}
-
-interface SyncRunsResponse {
-  runs: SyncRun[];
-}
-
-interface Config {
-  mode: string;
-  key_id_configured: boolean;
-  secret_configured: boolean;
-  page_size: number;
+interface GenerateResponse {
+  dataset_id?: string;
+  n_cases?: number;
+  n_records?: number;
+  ground_truth_count?: number;
+  inserted_records?: number;
+  inserted_ground_truths?: number;
 }
 
 export default function DataSources() {
-  const [status, setStatus] = useState<RazorpayStatus | null>(null);
-  const [runs, setRuns] = useState<SyncRun[]>([]);
-  const [config, setConfig] = useState<Config | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
+  const [nCases, setNCases] = useState(100);
+  const [seed, setSeed] = useState(42);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [lastGenerate, setLastGenerate] = useState<GenerateResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const loadDatasets = async () => {
     setLoading(true);
     try {
-      const [s, r, c] = await Promise.all([
-        api.get<RazorpayStatus>("/integrations/razorpay/status"),
-        api.get<SyncRunsResponse>("/integrations/razorpay/sync-runs"),
-        api.get<Config>("/integrations/razorpay/configuration"),
-      ]);
-      setStatus(s);
-      setRuns(r.runs || []);
-      setConfig(c);
+      const res = await api.get<{ datasets: Dataset[] }>("/synthetic/datasets");
+      setDatasets(res.datasets || []);
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
   };
 
-  const syncNow = async () => {
-    setSyncing(true);
+  const generate = async () => {
+    setGenerating(true);
+    setError(null);
     try {
-      await api.post("/integrations/razorpay/sync");
-      await load();
+      const res = await api.post<GenerateResponse>("/synthetic/generate", {
+        n_cases: nCases,
+        seed,
+      });
+      setLastGenerate(res);
+      await loadDatasets();
     } catch (e) {
       console.error(e);
+      setError("Failed to generate synthetic data.");
     }
-    setSyncing(false);
+    setGenerating(false);
   };
-
-  useEffect(() => {
-    load();
-  }, []);
 
   return (
     <DashboardLayout>
@@ -88,113 +71,108 @@ export default function DataSources() {
             <Database className="h-5 w-5 text-gray-500" />
             Data Sources
           </h1>
-          <p className="text-sm text-gray-500">Razorpay Test Mode and synthetic data</p>
+          <p className="text-sm text-gray-500">Synthetic data generation for reconciliation benchmarking</p>
         </div>
-        <Button variant="outline" size="sm" onClick={load}>
+        <Button variant="outline" size="sm" onClick={loadDatasets}>
           <RefreshCw className="mr-1 h-4 w-4" />
           Refresh
         </Button>
       </div>
 
-      {loading ? (
-        <Skeleton className="h-64" />
-      ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Razorpay Test Mode</CardTitle>
-              <CardDescription>Test Mode API integration</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Connection Status</span>
-                <Badge variant={status?.connected ? "success" : "warning"}>
-                  {status?.connected ? "Connected" : "Not Connected"}
-                </Badge>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Generate Synthetic Data</CardTitle>
+            <CardDescription>
+              Creates payments, settlements, and bank transactions across 20 reconciliation scenarios with hidden ground truth.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700" htmlFor="n-cases">
+                  Number of cases
+                </label>
+                <input
+                  id="n-cases"
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={nCases}
+                  onChange={(e) => setNCases(Number(e.target.value))}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                />
               </div>
-              {!status?.connected && (
-                <p className="mt-2 text-xs text-gray-400">
-                  Configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment to enable sync.
-                </p>
-              )}
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Payments</span>
-                  <span className="font-medium">{status?.payments ?? 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Settlements</span>
-                  <span className="font-medium">{status?.settlements ?? 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Recon Events</span>
-                  <span className="font-medium">{status?.recon_events ?? 0}</span>
-                </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700" htmlFor="seed">
+                  Random seed
+                </label>
+                <input
+                  id="seed"
+                  type="number"
+                  value={seed}
+                  onChange={(e) => setSeed(Number(e.target.value))}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                />
               </div>
+              <Button variant="outline" size="sm" onClick={generate} disabled={generating} className="w-full">
+                {generating ? "Generating..." : "Generate"}
+              </Button>
 
-              <div className="mt-4 border-t pt-4">
-                <Button variant="outline" size="sm" onClick={syncNow} disabled={syncing || !status?.connected} className="w-full">
-                  {syncing ? "Syncing..." : "Sync Now"}
-                </Button>
-              </div>
+              {error && <p className="text-xs text-red-500">{error}</p>}
 
-              {config && (
-                <div className="mt-4 border-t pt-4 text-xs text-gray-400">
-                  <p>Mode: {config.mode === "test" ? "Test Mode (safe)" : config.mode}</p>
-                  <p>Key ID configured: {config.key_id_configured ? "Yes" : "No"}</p>
-                  <p>Secret configured: {config.secret_configured ? "Yes" : "No"}</p>
-                  <p>Page size: {config.page_size}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Syncs</CardTitle>
-              <CardDescription>Sync run history</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {runs.length === 0 && (
-                <p className="text-sm text-gray-400">No sync runs yet.</p>
-              )}
-              <div className="space-y-2">
-                {runs.slice(0, 5).map((r) => (
-                  <div key={r.sync_run_id} className="rounded-md border p-3">
-                    <div className="flex items-center justify-between">
-                      <Badge variant={r.status === "completed" ? "success" : r.status === "failed" ? "destructive" : "warning"}>
-                        {r.status}
-                      </Badge>
-                      <span className="text-xs text-gray-400">
-                        {new Date(r.started_at).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="mt-2 grid grid-cols-4 gap-2 text-center text-xs">
-                      <div>
-                        <p className="font-semibold">{r.fetched}</p>
-                        <p className="text-gray-400">Fetched</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold">{r.inserted}</p>
-                        <p className="text-gray-400">Inserted</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold">{r.updated}</p>
-                        <p className="text-gray-400">Updated</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-red-500">{r.errors}</p>
-                        <p className="text-gray-400">Errors</p>
-                      </div>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-400">{r.duration_seconds?.toFixed(1)}s</p>
+              {lastGenerate && (
+                <div className="mt-4 rounded-md border p-3 text-sm">
+                  <p className="font-semibold text-gray-800">Generation complete</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <span>Cases: {lastGenerate.n_cases ?? 0}</span>
+                    <span>Records: {lastGenerate.n_records ?? 0}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Generated Datasets</CardTitle>
+            <CardDescription>Previously generated synthetic datasets</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading && <p className="text-sm text-gray-400">Loading...</p>}
+            {!loading && datasets.length === 0 && (
+              <p className="text-sm text-gray-400">No datasets yet. Generate one to begin.</p>
+            )}
+            <div className="space-y-2">
+              {datasets.slice(0, 8).map((d) => (
+                <div key={d.dataset_id} className="rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-800">{d.name || d.dataset_id}</span>
+                    <span className="text-xs text-gray-400">
+                      {d.created_at ? new Date(d.created_at).toLocaleString() : ""}
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div>
+                      <p className="font-semibold">{d.n_cases ?? 0}</p>
+                      <p className="text-gray-400">Cases</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">{d.n_records ?? 0}</p>
+                      <p className="text-gray-400">Records</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold">{d.ground_truth_count ?? 0}</p>
+                      <p className="text-gray-400">Truth</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 }

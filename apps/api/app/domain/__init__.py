@@ -12,10 +12,8 @@ from app.domain.cases import (
 from app.domain.evidence import EvidenceItem, EvidenceEdge, EdgeType, EvidenceGraph, EvidenceSource
 from app.domain.audit import AuditEvent, AuditEventType
 from app.domain.runs import (
-    SyncRun,
     ReconciliationRun,
     GroundTruth,
-    SyncRunStatus,
 )
 
 __all__ = [
@@ -37,8 +35,6 @@ __all__ = [
     "EvidenceSource",
     "AuditEvent",
     "AuditEventType",
-    "SyncRun",
     "ReconciliationRun",
     "GroundTruth",
-    "SyncRunStatus",
 ]

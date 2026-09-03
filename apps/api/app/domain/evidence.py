@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 
 class EvidenceSource(str, Enum):
-    RAZORPAY_TEST = "razorpay_test"
     SYNTHETIC = "synthetic"
     SYSTEM_CALCULATION = "system_calculation"
     HUMAN = "human"

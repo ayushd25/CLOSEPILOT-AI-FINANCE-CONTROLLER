@@ -34,7 +34,7 @@ export interface DashboardSummary {
   false_auto_match_rate: number;
 }
 
-export type SourceType = "razorpay_test" | "synthetic" | "system_calculation" | "human";
+export type SourceType = "synthetic" | "system_calculation" | "human";
 
 export type RecordType =
   | "payment"

@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 
 class SourceType(str, Enum):
-    RAZORPAY_TEST = "razorpay_test"
     SYNTHETIC = "synthetic"
     SYSTEM_CALCULATION = "system_calculation"
     HUMAN = "human"
@@ -31,7 +30,6 @@ class RecordType(str, Enum):
 class SourceInfo(BaseModel):
     type: SourceType
     source_record_id: str
-    sync_run_id: Optional[str] = None
 
 
 class FinancialRecord(BaseModel):
@@ -51,7 +49,6 @@ class FinancialRecord(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     raw_payload: Optional[dict[str, Any]] = None
     ingested_at: datetime = Field(default_factory=utcnow)
-    sync_run_id: Optional[str] = None
     source_record_id: Optional[str] = None
 
     def to_mongo(self) -> dict:

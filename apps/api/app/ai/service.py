@@ -62,7 +62,23 @@ Available evidence:
 Policy requirements:
 {context['policy']}
 
-Provide your analysis as structured output."""
+OUTPUT FORMAT: Respond with a SINGLE JSON object and nothing else. No prose, no
+markdown code fences, no headings, no bullet lists, no trailing explanation.
+The JSON object must contain EXACTLY these keys:
+- "case_id": string (must equal the case id above)
+- "conclusion": one of "INSUFFICIENT_EVIDENCE", "MATCH_CONFIRMED", "NO_MATCH", "EXPLAINED_DISCREPANCY"
+- "root_cause": string or null (likely root cause of the discrepancy)
+- "confidence": number between 0.0 and 1.0
+- "risk_level": one of "LOW", "MEDIUM", "HIGH", "CRITICAL"
+- "proposed_action": one of "AUTO_CLOSE", "KEEP_EXCEPTION", "MATCH", "RESOLVE", "REJECT"
+- "evidence_ids": array of strings (evidence IDs that support your conclusion)
+- "reason_codes": array of strings
+- "unresolved_questions": array of strings
+
+Example:
+{{"case_id": "CASE_x", "conclusion": "INSUFFICIENT_EVIDENCE", "root_cause": null,
+"confidence": 0.6, "risk_level": "HIGH", "proposed_action": "KEEP_EXCEPTION",
+"evidence_ids": [], "reason_codes": ["conflicting_candidates"], "unresolved_questions": []}}"""
 
     async def investigate(self, case_id: str) -> tuple[Optional[InvestigationProposal], InvestigationMetadata]:
         started = utcnow()
@@ -91,26 +107,38 @@ Provide your analysis as structured output."""
         }
 
         prompt = self._build_prompt(context)
+        llm = self._get_llm()
+        loop = asyncio.get_event_loop()
 
+        # Primary path: this Groq free-tier model does not honour structured
+        # output / tool calling (400 "model did not call a tool"). So we drive
+        # it with a strict-JSON prompt and recover the JSON from the raw text
+        # (tolerating accidental markdown fences/prose).
         try:
-            from langchain_core.output_parsers import PydanticOutputParser
+            raw = await loop.run_in_executor(None, lambda: llm.invoke(prompt))
+            text = raw.content if hasattr(raw, "content") else str(raw)
+            from app.ai.parsing import extract_json_object
 
-            parser = PydanticOutputParser(pydantic_object=InvestigationProposal)
-
-            llm = self._get_llm()
-            chain = llm | parser
-
-            # Run in executor to avoid blocking event loop
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, lambda: chain.invoke(prompt))
-
+            parsed = extract_json_object(text)
+            result = InvestigationProposal.model_validate(parsed)
             elapsed = (utcnow() - started).total_seconds() * 1000
             metadata.latency_ms = int(elapsed)
             metadata.validation_status = "valid"
             return result, metadata
-        except Exception as e:
-            elapsed = (utcnow() - started).total_seconds() * 1000
-            metadata.latency_ms = int(elapsed)
-            metadata.validation_status = "error"
-            metadata.error = str(e)[:500]
-            return None, metadata
+        except Exception as prim_exc:
+            # Fallback: structured output through Groq's tool/JSON-schema path,
+            # which works for models that DO support function calling.
+            try:
+                structured = llm.with_structured_output(InvestigationProposal)
+                result = await loop.run_in_executor(None, lambda: structured.invoke(prompt))
+                elapsed = (utcnow() - started).total_seconds() * 1000
+                metadata.latency_ms = int(elapsed)
+                metadata.validation_status = "valid"
+                return result, metadata
+            except Exception as fallback_err:
+                elapsed = (utcnow() - started).total_seconds() * 1000
+                metadata.latency_ms = int(elapsed)
+                metadata.validation_status = "error"
+                combined = f"{prim_exc} | fallback: {fallback_err}"
+                metadata.error = str(combined)[:500]
+                return None, metadata

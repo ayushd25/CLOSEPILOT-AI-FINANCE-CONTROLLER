@@ -44,7 +44,6 @@ interface Trends {
   }>;
   risk_distribution: Record<string, number>;
   source_health: {
-    razorpay_test: { connected: boolean; records: number };
     synthetic: { records: number };
   };
 }
@@ -168,17 +167,6 @@ export default function CommandCenter() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="rounded-md border p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">Razorpay Test Mode</p>
-                      <Badge variant={trends?.source_health?.razorpay_test?.connected ? "success" : "warning"}>
-                        {trends?.source_health?.razorpay_test?.connected ? "Connected" : "Not Connected"}
-                      </Badge>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-500">
-                      {trends?.source_health?.razorpay_test?.records ?? 0} records ingested
-                    </p>
-                  </div>
                   <div className="rounded-md border p-4">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold">Synthetic</p>

@@ -2,6 +2,24 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { HttpClient } from "@/lib/api";
 
+function listenFor(wait = 50): Promise<{
+  method: string;
+  path: string;
+  message: string;
+}> {
+  return new Promise((resolve, reject) => {
+    const handler = (e: Event) => {
+      window.removeEventListener("closepilot:api-error", handler);
+      resolve((e as CustomEvent).detail);
+    };
+    window.addEventListener("closepilot:api-error", handler);
+    setTimeout(() => {
+      window.removeEventListener("closepilot:api-error", handler);
+      reject(new Error("no global API error event dispatched"));
+    }, wait);
+  });
+}
+
 describe("HttpClient", () => {
   const originalFetch = global.fetch;
   let fetchMock: ReturnType<typeof vi.fn>;
@@ -79,5 +97,39 @@ describe("HttpClient", () => {
   it("defaults base URL when none provided", () => {
     const client = new HttpClient();
     expect(client).toBeDefined();
+  });
+
+  it("dispatches a global error event on network failure", async () => {
+    fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    const listener = listenFor();
+    const client = new HttpClient("http://test.local");
+    await expect(client.get("/health")).rejects.toThrow("API network error");
+    const detail = await listener;
+    expect(detail.method).toBe("GET");
+    expect(detail.path).toBe("/health");
+    expect(detail.message).toContain("Failed to fetch");
+  });
+
+  it("dispatches a global error event on 5xx responses, but not on 4xx", async () => {
+    // 4xx should not trigger the global modal (page-level handling owns it)
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => "not found",
+    } as Response);
+    const client4xx = new HttpClient("http://test.local");
+    await expect(client4xx.get("/cases/1")).rejects.toThrow("API error 404");
+
+    // 5xx should trigger the global modal
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => "boom",
+    } as Response);
+    const listener = listenFor();
+    await expect(client4xx.get("/boom")).rejects.toThrow("API error 500");
+    const detail = await listener;
+    expect(detail.message).toContain("API error 500");
+    expect(detail.path).toBe("/boom");
   });
 });

@@ -63,10 +63,6 @@ async def dashboard_trends():
         risk_dist[case.get("risk", "LOW")] += 1
 
     source_health = {
-        "razorpay_test": {
-            "connected": bool((await db.financial_records.count_documents({"source": "razorpay_test"})) > 0),
-            "records": await db.financial_records.count_documents({"source": "razorpay_test"}),
-        },
         "synthetic": {
             "records": await db.financial_records.count_documents({"source": "synthetic"}),
         },

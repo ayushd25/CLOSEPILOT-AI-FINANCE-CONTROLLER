@@ -24,8 +24,5 @@ async def ensure_indexes() -> None:
     await db.audit_events.create_index([("timestamp", -1)])
     await db.audit_events.create_index([("event_type", 1)])
 
-    await db.sync_runs.create_index([("source", 1)])
-    await db.sync_runs.create_index([("started_at", -1)])
-
     await db.evaluation_runs.create_index([("created_at", -1)])
     await db.synthetic_datasets.create_index([("name", 1)])

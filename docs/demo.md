@@ -10,17 +10,14 @@ Show live dashboard with real backend metrics:
 
 > ClosePilot is an autonomous finance controller. It reconciles financial records, investigates exceptions, and only closes cases when evidence and policy allow it.
 
-## Scene 2 — Razorpay Test Mode
+## Scene 2 — Synthetic data source
 
 Open Data Sources. Show:
 
-- Razorpay Test Mode connected
-- actual fetched payment/settlement counts
-- last sync
+- the scenario generator (case count + seed)
+- generate a fresh dataset and show it appears the generated datasets list
 
-Click Sync Now if appropriate.
-
-> The demo can ingest authentic Razorpay Test Mode data directly. We keep the raw source payload for provenance and normalize it into our internal financial model.
+> The demo runs entirely on controlled synthetic financial data with hidden ground-truth labels. The generator is deterministic, so every run is reproducible — we never pretend to be live when we aren't.
 
 ## Scene 3 — Reconciliation
 

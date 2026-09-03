@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Modal } from "@/components/ui/modal";
 import { api } from "@/lib/api";
 import {
   ArrowLeft,
@@ -76,9 +77,29 @@ interface PolicyDecision {
 interface InvestigationResult {
   case_id: string;
   proposal: CaseDetail["ai_proposal"];
-  metadata: { model: string; latency_ms: number; validation_status: string };
+  metadata: {
+    model: string;
+    latency_ms: number;
+    validation_status: string;
+    error?: string | null;
+  };
   status: string;
 }
+
+interface InvestigationLogEntry {
+  id: string;
+  label: string;
+  value?: string;
+}
+
+interface ModalState {
+  open: boolean;
+  variant: "info" | "error";
+  title: string;
+  entries: InvestigationLogEntry[];
+}
+
+const emptyModal: ModalState = { open: false, variant: "info", title: "", entries: [] };
 
 export default function ExceptionInvestigator() {
   const params = useParams<{ caseId: string }>();
@@ -89,6 +110,12 @@ export default function ExceptionInvestigator() {
   const [policy, setPolicy] = useState<PolicyDecision | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<Array<{ evidence_id: string; statement: string; source: string; entity_type: string; entity_id: string }>>([]);
+  const [modal, setModal] = useState<ModalState>(emptyModal);
+
+  const closeModal = () => setModal((m) => ({ ...m, open: false }));
+
+  const buildModal = (v: Partial<ModalState>) =>
+    setModal((m) => ({ ...m, ...v, open: true }));
 
   const loadCase = async () => {
     setLoading(true);
@@ -98,6 +125,11 @@ export default function ExceptionInvestigator() {
       setData(res);
     } catch (e) {
       setError(String(e));
+      buildModal({
+        variant: "error",
+        title: "Failed to load case",
+        entries: [{ id: "error", label: "Error", value: String(e) }],
+      });
     }
     setLoading(false);
   };
@@ -117,6 +149,11 @@ export default function ExceptionInvestigator() {
       setPolicy(res);
     } catch (e) {
       console.error(e);
+      buildModal({
+        variant: "error",
+        title: "Policy evaluation failed",
+        entries: [{ id: "error", label: "Error", value: String(e) }],
+      });
     }
   };
 
@@ -125,10 +162,41 @@ export default function ExceptionInvestigator() {
     setError(null);
     try {
       const res = await api.post<InvestigationResult>(`/cases/${caseId}/investigate`);
+      const meta = res?.metadata;
+      if (meta && meta.validation_status !== "valid") {
+        buildModal({
+          variant: "error",
+          title: "AI Investigation did not complete",
+          entries: [
+            { id: "status", label: "Status", value: meta.validation_status },
+            { id: "model", label: "Model", value: meta.model || "-" },
+            { id: "latency", label: "Latency", value: meta.latency_ms ? `${meta.latency_ms} ms` : "-" },
+            { id: "error", label: "Error", value: meta.error || "No error details returned." },
+          ],
+        });
+      } else if (meta?.model || meta?.latency_ms != null) {
+        buildModal({
+          variant: "info",
+          title: "AI Investigation complete",
+          entries: [
+            { id: "status", label: "Status", value: meta?.validation_status ?? "valid" },
+            { id: "model", label: "Model", value: meta?.model || "-" },
+            { id: "latency", label: "Latency", value: meta?.latency_ms ? `${meta.latency_ms} ms` : "-" },
+          ],
+        });
+      }
       await loadCase();
       setPolicy(null);
     } catch (e) {
       setError(String(e));
+      buildModal({
+        variant: "error",
+        title: "AI Investigation failed",
+        entries: [
+          { id: "error", label: "Error", value: String(e) },
+          { id: "action", label: "Action", value: "Please try again." },
+        ],
+      });
     }
     setInvestigating(false);
   };
@@ -139,6 +207,11 @@ export default function ExceptionInvestigator() {
       await loadCase();
     } catch (e) {
       setError(String(e));
+      buildModal({
+        variant: "error",
+        title: "Approve action failed",
+        entries: [{ id: "error", label: "Error", value: String(e) }],
+      });
     }
   };
 
@@ -148,6 +221,11 @@ export default function ExceptionInvestigator() {
       await loadCase();
     } catch (e) {
       setError(String(e));
+      buildModal({
+        variant: "error",
+        title: "Reject action failed",
+        entries: [{ id: "error", label: "Error", value: String(e) }],
+      });
     }
   };
 
@@ -157,6 +235,11 @@ export default function ExceptionInvestigator() {
       await loadCase();
     } catch (e) {
       setError(String(e));
+      buildModal({
+        variant: "error",
+        title: "Keep-exception action failed",
+        entries: [{ id: "error", label: "Error", value: String(e) }],
+      });
     }
   };
 
@@ -520,6 +603,22 @@ export default function ExceptionInvestigator() {
           </Card>
         </div>
       </div>
+
+      <Modal
+        open={modal.open}
+        onClose={closeModal}
+        variant={modal.variant}
+        title={modal.title}
+      >
+        <dl className="space-y-3">
+          {modal.entries.map((entry) => (
+            <div key={entry.id}>
+              <dt className="text-xs font-semibold text-gray-500">{entry.label}</dt>
+              <dd className="mt-0.5 font-mono text-xs break-words whitespace-pre-wrap">{entry.value || "-"}</dd>
+            </div>
+          ))}
+        </dl>
+      </Modal>
     </DashboardLayout>
   );
 }

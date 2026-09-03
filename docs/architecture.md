@@ -3,21 +3,19 @@
 ## High-level architecture
 
 ```text
-Razorpay Test Mode APIs ─────┐
-                             ├→ Integration Layer
-Synthetic Generator ─────────┘
-                             ↓
-                    Canonical Financial Model
-                             ↓
-                    Normalization / Validation
-                             ↓
-                    Candidate Generation
-                             ↓
-                 Deterministic Reconciliation
-                       ↙              ↘
-                 matched           ambiguous
-                    ↓                  ↓
-              evidence              AI Investigator
+Synthetic Generator ─────► Integration Layer
+                           ↓
+                  Canonical Financial Model
+                           ↓
+                  Normalization / Validation
+                           ↓
+                  Candidate Generation
+                           ↓
+               Deterministic Reconciliation
+                     ↙              ↘
+               matched           ambiguous
+                  ↓                  ↓
+            evidence              AI Investigator
                     ↓                  ↓
                  policy ← typed proposal
                     ↓
@@ -97,8 +95,6 @@ apps/api/
     api/
     domain/
     services/
-    integrations/
-      razorpay/
     reconciliation/
     ai/
     evidence/
@@ -111,7 +107,7 @@ apps/api/
 
 ## Security model
 
-- Razorpay credentials: backend only
+- Credentials: backend only
 - AI receives only scoped case/evidence data
 - No arbitrary tool execution
 - Financial domain logic never lives in frontend
