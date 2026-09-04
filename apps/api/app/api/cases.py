@@ -236,7 +236,7 @@ async def evaluate_policy(case_id: str):
     if case.discrepancy and case.discrepancy.amount_diff:
         pass
 
-    decision = policy.evaluate(case, proposal)
+    decision = await policy._with_repo().evaluate(case, proposal)
     return decision.model_dump()
 
 

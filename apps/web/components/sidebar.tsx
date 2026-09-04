@@ -11,6 +11,7 @@ import {
   History,
   Database,
   Shield,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/evidence", label: "Evidence Graph", icon: Share2 },
   { href: "/audit", label: "Audit Trail", icon: History },
   { href: "/sources", label: "Data Sources", icon: Database },
+  { href: "/policies", label: "Policies", icon: SlidersHorizontal },
 ];
 
 export function Sidebar() {

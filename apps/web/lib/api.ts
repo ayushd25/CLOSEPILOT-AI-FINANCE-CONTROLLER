@@ -13,6 +13,7 @@ declare global {
 export interface ApiClient {
   get<T>(path: string): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
+  put<T>(path: string, body?: unknown): Promise<T>;
 }
 
 function reportGlobalError(method: string, path: string, message: string) {
@@ -67,6 +68,10 @@ export class HttpClient implements ApiClient {
 
   post<T>(path: string, body?: unknown) {
     return this.request<T>("POST", path, body);
+  }
+
+  put<T>(path: string, body?: unknown) {
+    return this.request<T>("PUT", path, body);
   }
 }
 

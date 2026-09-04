@@ -23,7 +23,7 @@ class AgentExecutor:
     def __init__(self, session_id: str = "agent", role: str = "FINANCE_CONTROLLER", agent_tool_name: str = "assistant"):
         self.db = Database.get_db()
         self.case_repo = ReconciliationCaseRepository(self.db)
-        self.policy = PolicyEngine()
+        self.policy = PolicyEngine()._with_repo()
         self.session_id = session_id
         self.role = role
         self.agent_tool_name = agent_tool_name
@@ -127,7 +127,7 @@ class AgentExecutor:
             processed += 1
             if case.status in (CaseStatus.RESOLVED, CaseStatus.AUTO_RESOLVED, CaseStatus.REJECTED):
                 continue
-            decision = self.policy.evaluate(case, case.ai_proposal)
+            decision = await self.policy.evaluate(case, case.ai_proposal)
             if decision.allowed and decision.decision == "AUTO_CLOSE":
                 await self._auto_close(case, decision)
                 executed.append(case.case_id)
