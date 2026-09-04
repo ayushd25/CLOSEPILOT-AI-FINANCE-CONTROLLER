@@ -12,6 +12,7 @@ import {
   Database,
   Shield,
   SlidersHorizontal,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/audit", label: "Audit Trail", icon: History },
   { href: "/sources", label: "Data Sources", icon: Database },
   { href: "/policies", label: "Policies", icon: SlidersHorizontal },
+  { href: "/docs", label: "Documentation", icon: BookOpen },
 ];
 
 export function Sidebar() {

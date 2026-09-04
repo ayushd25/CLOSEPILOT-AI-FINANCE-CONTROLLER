@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from app.ai.parsing import extract_json_object
 from app.agent.executor import AgentExecutor, AgentToolError, TOOL_REGISTRY, get_tool_help
+from app.agent.help import platform_help
 from app.config import settings
 from app.db import Database
 from app.domain.agent import (
@@ -97,10 +98,11 @@ class AgentSupervisor:
     # Q&A                                                                #
     # ------------------------------------------------------------------ #
     async def _answer_question(self, question: str) -> str:
-        # Build context: aggregate summary (for general questions) plus
-        # any specific cases referenced in the question, so the assistant can
-        # answer about individual cases in detail.
+        # Build context: platform guide (for general/how-to questions) plus the
+        # aggregate summary and any specific cases referenced in the question.
         parts: list[str] = []
+        parts.append("PLATFORM GUIDE (use for 'what can I do', 'how do I', general questions):\n" + platform_help())
+
         summary = await self.executor.summary()
         parts.append("PLATFORM SUMMARY:\n" + json.dumps(summary, default=str))
 
@@ -115,7 +117,7 @@ class AgentSupervisor:
                 parts.append(f"CASE DETAIL {cid}:\n(case not found)")
 
         context = "\n\n".join(parts)
-        prompt = f"""You are ClosePilot's finance investigator assistant. Answer the user using ONLY the platform data provided. Be specific, explain root causes, and state why a case is risky (refer to its risk level, amount/impact, confidence, discrepancy, candidate conflicts). Do not invent facts.
+        prompt = f"""You are ClosePilot's finance assistant. Use the PLATFORM GUIDE to answer general questions about what the platform is, how to navigate it, what you can do, and how to perform each task (reconciliation, investigation, policy evaluation, running the agent, etc.). Use the PLATFORM SUMMARY and CASE DETAIL blocks (live data) to answer questions about the current state or specific cases — be specific, explain root causes, and state why a case is risky (refer to its risk level, amount/impact, confidence, discrepancy, candidate conflicts). Do not invent facts beyond the guide and the data provided.
 
 Platform data:
 {context}

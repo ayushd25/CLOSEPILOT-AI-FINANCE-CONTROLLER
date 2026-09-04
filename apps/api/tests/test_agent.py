@@ -78,6 +78,29 @@ async def test_answer_question_returns_answer():
     assert "6" in answer
 
 
+async def test_answer_question_uses_platform_guide_for_general_questions():
+    """General 'what can I do' questions must have the platform guide in context."""
+    captured = {}
+
+    class _EchoLLM:
+        def invoke(self, prompt):
+            captured["prompt"] = prompt
+            return _FakeLLMResponse('{"answer": "You can run reconciliation, investigate cases, etc."}')
+
+    class _FakeExec:
+        async def summary(self, args=None):
+            return {"total_cases": 10}
+
+    supervisor = AgentSupervisor(session_id="test")
+    supervisor._llm = _EchoLLM()
+    supervisor.executor = _FakeExec()
+
+    await supervisor._answer_question("What can I do with ClosePilot?")
+    assert "PLATFORM GUIDE" in captured["prompt"]
+    assert "Run Reconciliation" in captured["prompt"] or "/reconciliation" in captured["prompt"]
+    assert "PolicyEngine" in captured["prompt"] or "policy" in captured["prompt"].lower()
+
+
 async def test_answer_question_includes_case_detail_when_referenced():
     """A question referencing a CASE id must load that case's context for the LLM."""
     fetched = []
