@@ -63,6 +63,8 @@ interface CaseDetail {
   } | null;
   source: string;
   record_type: string;
+  reviewer?: string;
+  agent_note?: string;
 }
 
 interface PolicyDecision {
@@ -321,6 +323,24 @@ export default function ExceptionInvestigator() {
       {error && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
           {error}
+        </div>
+      )}
+
+      {data?.agent_note && (
+        <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-indigo-500" />
+            <p className="text-sm font-semibold text-indigo-800">
+              {data.reviewer ? `Auto-reviewed by Agent (${data.reviewer})` : "Agent review"}
+            </p>
+          </div>
+          <p className="mt-1 text-sm text-indigo-700">{data.agent_note}</p>
+          <div className="mt-2">
+            <p className="text-xs font-semibold text-indigo-600">Status</p>
+            <p className="text-sm text-indigo-800">
+              This case is <span className="font-semibold">HUMAN_REVIEW</span> — a person must decide.
+            </p>
+          </div>
         </div>
       )}
 

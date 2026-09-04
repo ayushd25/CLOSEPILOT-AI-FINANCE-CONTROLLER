@@ -26,3 +26,9 @@ async def ensure_indexes() -> None:
 
     await db.evaluation_runs.create_index([("created_at", -1)])
     await db.synthetic_datasets.create_index([("name", 1)])
+
+    await db.agent_runs.create_index([("run_id", 1)])
+    await db.agent_runs.create_index([("session_id", 1)])
+    await db.agent_runs.create_index([("created_at", -1)])
+    await db.agent_events.create_index([("run_id", 1)])
+    await db.agent_events.create_index([("created_at", 1)])

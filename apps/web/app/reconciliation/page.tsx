@@ -183,7 +183,7 @@ export default function Reconciliation() {
                     <td className="px-4 py-3">{statusBadge(c.status)}</td>
                     <td className="px-4 py-3 text-xs text-gray-500">{c.source}</td>
                     <td className="px-4 py-3">
-                      <Link href={`/exceptions?id=${c.case_id}`}>
+                      <Link href={`/exceptions/${c.case_id}`}>
                         <Button variant="ghost" size="sm">
                           View <ArrowRight className="ml-1 h-3 w-3" />
                         </Button>

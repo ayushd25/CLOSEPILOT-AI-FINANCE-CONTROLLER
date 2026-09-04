@@ -38,19 +38,21 @@ function ExceptionsContent() {
   const fetchCases = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.set("status", "EXCEPTION");
-      if (riskFilter) params.set("risk", riskFilter);
-      const res = await api.get<CasesResponse>(`/reconciliation/cases?${params.toString()}&limit=100`);
+      // Actionable open cases: EXCEPTION + agent-staged HUMAN_REVIEW.
+      const [exc, rev] = await Promise.all([
+        api.get<CasesResponse>(`/reconciliation/cases?status=EXCEPTION&${riskFilter ? `risk=${riskFilter}&` : ""}limit=100`),
+        api.get<CasesResponse>(`/reconciliation/cases?status=HUMAN_REVIEW&${riskFilter ? `risk=${riskFilter}&` : ""}limit=100`),
+      ]);
+      const merged: CaseItem[] = [...exc.cases, ...rev.cases];
       // Sort by risk priority and amount
       const priority = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-      res.cases.sort((a, b) => {
+      merged.sort((a, b) => {
         const pa = priority[a.risk as keyof typeof priority] ?? 4;
         const pb = priority[b.risk as keyof typeof priority] ?? 4;
         if (pa !== pb) return pa - pb;
         return (b.amount ?? 0) - (a.amount ?? 0);
       });
-      setData(res);
+      setData({ total: merged.length, cases: merged });
     } catch (e) {
       console.error(e);
     }
@@ -121,6 +123,9 @@ function ExceptionsContent() {
                       <span className="font-mono text-xs font-medium text-gray-700">{c.case_id}</span>
                       {riskBadge(c.risk)}
                       <Badge variant="secondary">{c.outcome_type || "unknown"}</Badge>
+                      <Badge variant={c.status === "HUMAN_REVIEW" ? "warning" : "default"}>
+                        {c.status === "HUMAN_REVIEW" ? "Human Review" : "Exception"}
+                      </Badge>
                     </div>
                     <p className="mt-1 text-sm text-gray-500">
                       {((c.amount ?? 0) / 100).toLocaleString("en-IN", { style: "currency", currency: c.currency || "INR" })}

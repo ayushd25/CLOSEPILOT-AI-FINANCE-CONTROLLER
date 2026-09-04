@@ -12,6 +12,7 @@ from app.api.cases import router as cases_router
 from app.api.audit import router as audit_router
 from app.api.evaluation import router as evaluation_router
 from app.api.synthetic import router as synthetic_router
+from app.api.agent import router as agent_router
 from app.config import settings
 from app.db import Database
 from app.db.indexes import ensure_indexes
@@ -58,3 +59,4 @@ app.include_router(cases_router)
 app.include_router(audit_router)
 app.include_router(evaluation_router)
 app.include_router(synthetic_router)
+app.include_router(agent_router)

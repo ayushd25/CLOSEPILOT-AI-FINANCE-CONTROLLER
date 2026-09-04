@@ -46,11 +46,19 @@ async def list_cases(
 async def get_case(case_id: str):
     from app.reconciliation.repositories import ReconciliationCaseRepository
 
-    repo = ReconciliationCaseRepository()
-    case = await repo.get(case_id)
-    if not case:
+    db = Database.get_db()
+    repo = ReconciliationCaseRepository(db)
+    raw = await db.reconciliation_cases.find_one({"case_id": case_id})
+    if not raw:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
-    return case.to_mongo()
+    case = await repo.get(case_id)
+    data = case.to_mongo()
+    # Surface extra top-level annotations not modelled on ReconciliationCase
+    # (e.g. agent_note) so the UI can render agent review context.
+    for extra in ("agent_note",):
+        if raw.get(extra) is not None:
+            data[extra] = raw.get(extra)
+    return data
 
 
 @router.post("/cases/{case_id}/replay")
