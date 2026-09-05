@@ -4,52 +4,58 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 33% 98%;
+    --foreground: 224 41% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 41% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-    --success: 142 76% 36%;
-    --success-foreground: 355 100% 97%;
+    --popover-foreground: 224 41% 10%;
+    --primary: 224 44% 14%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 218 24% 95%;
+    --secondary-foreground: 224 36% 16%;
+    --muted: 220 20% 97%;
+    --muted-foreground: 220 9% 44%;
+    --accent: 219 26% 95%;
+    --accent-foreground: 224 36% 16%;
+    --destructive: 4 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 90%;
+    --input: 220 15% 88%;
+    --ring: 160 84% 39%;
+    --radius: 0.625rem;
+    --success: 160 84% 32%;
+    --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 48 96% 89%;
+    --warning-foreground: 31 92% 18%;
+    --navy: 220 47% 11%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: 224 42% 7%;
+    --foreground: 214 33% 96%;
+    --card: 224 38% 10%;
+    --card-foreground: 214 33% 96%;
+    --popover: 224 38% 10%;
+    --popover-foreground: 214 33% 96%;
+    --primary: 160 84% 42%;
+    --primary-foreground: 224 42% 7%;
+    --secondary: 220 32% 16%;
+    --secondary-foreground: 214 33% 96%;
+    --muted: 220 32% 14%;
+    --muted-foreground: 218 12% 62%;
+    --accent: 220 32% 16%;
+    --accent-foreground: 214 33% 96%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 24% 18%;
+    --input: 220 24% 18%;
+    --ring: 160 84% 46%;
+    --success: 160 84% 45%;
+    --success-foreground: 224 42% 7%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 31 92% 12%;
+    --navy: 224 42% 7%;
   }
 }
 
@@ -58,7 +64,45 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "tnum" 1, "cv01" 1;
+    letter-spacing: -0.011em;
+  }
+  ::selection {
+    @apply bg-emerald-200/70 text-emerald-950;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Subtle blueprint grid used on the landing hero. */
+  .bg-fin-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .bg-fin-grid-light {
+    background-image:
+      linear-gradient(to right, rgb(15 23 42 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(15 23 42 / 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .glow-emerald {
+    box-shadow: 0 8px 40px -8px rgb(16 185 129 / 0.45);
   }
 }
 

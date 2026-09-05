@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Shield,
+  Landmark,
   ArrowRight,
   BookOpen,
   GitCompareArrows,
   BrainCircuit,
   Sparkles,
-  Scale,
   ScanLine,
+  GitBranch,
   Receipt,
   FlaskConical,
   History,
@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 
 const ctaSm =
-  "inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors";
+  "inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 text-xs font-medium transition-all";
 const ctaLg =
-  "inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-md px-8 text-sm font-medium transition-colors";
-const ctaPrimary = "bg-emerald-600 text-white hover:bg-emerald-700";
-const ctaOutline = "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50";
-const ctaSecondary = "bg-white text-emerald-700 hover:bg-emerald-50";
+  "inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-8 text-sm font-medium transition-all";
+const ctaPrimary = "bg-emerald-500 text-emerald-950 hover:bg-emerald-400 glow-emerald";
+const ctaOutline = "border border-white/15 bg-white/5 text-white hover:border-white/30 hover:bg-white/10";
+const ctaSecondary = "bg-white text-[#0A1626] hover:bg-emerald-50";
 
 interface Summary {
   total_records: number;
@@ -62,7 +62,7 @@ const features = [
     href: "/exceptions",
   },
   {
-    icon: Scale,
+    icon: GitBranch,
     title: "Policies authorize. Nothing is forced.",
     body: "Auto-close only when rules say LOW risk, within tolerance and fully evidenced. Everything else is staged for a human reviewer.",
     href: "/policies",
@@ -130,30 +130,35 @@ function LiveStrip() {
   const hasData = (summary?.total_records ?? 0) > 0;
   if (!hasData) {
     return (
-      <div className="mx-auto mt-10 max-w-2xl rounded-xl border border-dashed border-gray-300 bg-white px-6 py-5 text-center shadow-sm">
-        <p className="text-sm text-gray-600">
+      <div className="mx-auto mt-10 max-w-2xl rounded-xl border border-dashed border-white/15 bg-white/5 px-6 py-5 text-center backdrop-blur-sm">
+        <p className="text-sm text-slate-300">
           No data loaded yet. Generate a dataset to unlock live numbers on this page.
         </p>
-        <Link href="/sources" className={cn(ctaSm, ctaOutline, "mt-3")}>Generate a dataset →</Link>
+        <Link href="/sources" className={cn(ctaSm, ctaPrimary, "mt-3")}>Generate a dataset →</Link>
       </div>
     );
   }
 
   const items = [
-    { label: "Records ingested", value: summary?.total_records?.toLocaleString("en-IN") ?? "—" },
-    { label: "Reconciled", value: summary?.reconciled?.toLocaleString("en-IN") ?? "—" },
-    { label: "Auto-resolved", value: summary?.auto_resolved?.toLocaleString("en-IN") ?? "—" },
-    { label: "Open cases", value: summary?.human_review !== undefined ? (summary.human_review + summary.exceptions).toLocaleString("en-IN") : "—" },
-    { label: "Forecast (7d)", value: forecast ? inr(forecast.projected_cash) : "—" },
-    { label: "Tax lines checked", value: tax?.checked?.toLocaleString("en-IN") ?? "—" },
+    { label: "Records ingested", value: summary?.total_records?.toLocaleString("en-IN") ?? "—", accent: false },
+    { label: "Reconciled", value: summary?.reconciled?.toLocaleString("en-IN") ?? "—", accent: true },
+    { label: "Auto-resolved", value: summary?.auto_resolved?.toLocaleString("en-IN") ?? "—", accent: true },
+    { label: "Open cases", value: summary?.human_review !== undefined ? (summary.human_review + summary.exceptions).toLocaleString("en-IN") : "—", accent: false },
+    { label: "Forecast (7d)", value: forecast ? inr(forecast.projected_cash) : "—", accent: true },
+    { label: "Tax lines checked", value: tax?.checked?.toLocaleString("en-IN") ?? "—", accent: false },
   ];
 
   return (
     <div className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-4 md:grid-cols-3">
       {items.map((it) => (
-        <div key={it.label} className="rounded-xl border bg-white p-4 text-center shadow-sm">
-          <p className="text-xs font-medium text-gray-500">{it.label}</p>
-          <p className="mt-1 text-xl font-bold text-gray-900">{it.value}</p>
+        <div
+          key={it.label}
+          className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-4 text-center backdrop-blur-sm transition-colors hover:border-emerald-400/30"
+        >
+          <p className="text-[11px] font-medium uppercase tracking-widest text-slate-400">{it.label}</p>
+          <p className={cn("mt-1.5 text-xl font-bold tabular-nums", it.accent ? "text-emerald-300" : "text-white")}>
+            {it.value}
+          </p>
         </div>
       ))}
     </div>
@@ -162,24 +167,26 @@ function LiveStrip() {
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+    <div className="min-h-screen bg-background font-sans text-foreground">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#06101D]/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-emerald-600 text-white">
-              <Shield className="h-4 w-4" />
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[0_4px_16px_rgba(16,185,129,0.4)]">
+              <Landmark className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-bold leading-none">ClosePilot</p>
-              <p className="text-[10px] text-muted-foreground">Autonomous Finance Controller</p>
+              <p className="text-sm font-bold leading-none tracking-tight text-white">ClosePilot</p>
+              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-emerald-400/90">
+                Autonomous Finance Controller
+              </p>
             </div>
           </div>
-          <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-            <Link className="hover:text-gray-900" href="#features">Features</Link>
-            <Link className="hover:text-gray-900" href="#how">How it works</Link>
-            <Link className="hover:text-gray-900" href="/forecast">Forecast</Link>
-            <Link className="hover:text-gray-900" href="/tax">Tax matcher</Link>
+          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+            <Link className="transition-colors hover:text-white" href="#features">Features</Link>
+            <Link className="transition-colors hover:text-white" href="#how">How it works</Link>
+            <Link className="transition-colors hover:text-white" href="/forecast">Forecast</Link>
+            <Link className="transition-colors hover:text-white" href="/tax">Tax matcher</Link>
           </nav>
           <Link href="/explore" className={cn(ctaSm, ctaPrimary)}>
             Open the app <ArrowRight className="ml-1 h-4 w-4" />
@@ -188,15 +195,28 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="border-b bg-gradient-to-b from-emerald-50/60 to-gray-50">
-        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+      <section className="relative overflow-hidden border-b border-white/5 bg-[#071223] text-white">
+        <div className="absolute inset-0 bg-fin-grid" aria-hidden />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(60% 55% at 50% -12%, rgba(16,185,129,0.22), rgba(16,185,129,0.05) 45%, transparent 70%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-4xl px-6 py-24 text-center"
+          style={{
+            background:
+              "radial-gradient(90% 40% at 50% 0%, rgba(16,185,129,0.10), rgba(7,18,35,0) 70%)",
+          }}>
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
             <Sparkles className="h-3.5 w-3.5" /> AI Finance Controller for payment reconciliation
           </span>
-          <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
+          <h1 className="mt-6 text-4xl font-extrabold tracking-tighter text-white md:text-6xl">
             Automate what you can prove.
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-600">
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
             ClosePilot reconciles payments, settles discrepancies and forecasts cash — with an AI that
             investigates and proposes, rules that authorize, and an evidence graph that proves every decision.
             Nothing is ever forced through.
@@ -214,9 +234,9 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section id="features" className="mx-auto max-w-6xl px-6 py-20">
+      <section id="features" className="mx-auto max-w-6xl px-6 py-24">
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-emerald-600">Capabilities</p>
-        <h2 className="mt-3 text-center text-3xl font-bold text-gray-900">
+        <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-foreground">
           Investigate with AI. Decide with rules. Prove with evidence.
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -224,11 +244,11 @@ export default function Landing() {
             <Link
               key={f.title}
               href={f.href}
-              className="group rounded-2xl border bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="group rounded-2xl border bg-card p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-lg"
             >
               <f.icon className="h-8 w-8 text-emerald-600" />
-              <h3 className="mt-4 text-base font-semibold text-gray-900">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{f.body}</p>
+              <h3 className="mt-4 text-base font-semibold tracking-tight text-foreground">{f.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
               <span className="mt-3 inline-flex items-center text-sm font-medium text-emerald-600">
                 Open <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </span>
@@ -238,16 +258,18 @@ export default function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="border-y bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+      <section id="how" className="border-y bg-slate-50/80">
+        <div className="mx-auto max-w-6xl px-6 py-24">
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-emerald-600">The loop</p>
-          <h2 className="mt-3 text-center text-3xl font-bold text-gray-900">How ClosePilot works</h2>
+          <h2 className="mt-3 text-center text-3xl font-bold tracking-tight text-foreground">How ClosePilot works</h2>
           <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
             {steps.map((s) => (
-              <div key={s.n} className="relative rounded-2xl border bg-gray-50/50 p-6">
-                <span className="text-4xl font-extrabold text-emerald-200">{s.n}</span>
-                <h3 className="mt-3 text-lg font-semibold text-gray-900">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-600">{s.body}</p>
+              <div key={s.n} className="relative rounded-2xl border bg-card p-6 shadow-sm">
+                <span className="bg-gradient-to-br from-emerald-500 to-emerald-700 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent">
+                  {s.n}
+                </span>
+                <h3 className="mt-3 text-lg font-semibold tracking-tight text-foreground">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
               </div>
             ))}
           </div>
@@ -255,13 +277,19 @@ export default function Landing() {
       </section>
 
       {/* Principle band */}
-      <section className="bg-emerald-700">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 py-12 text-center md:flex-row md:text-left">
+      <section className="relative overflow-hidden bg-[#0A1626]">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" aria-hidden />
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(55% 80% at 50% 0%, rgba(16,185,129,0.14), transparent 70%)" }}
+          aria-hidden
+        />
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 py-14 text-center md:flex-row md:text-left">
           <div>
-            <p className="text-xl font-bold text-white md:text-2xl">
+            <p className="text-xl font-bold tracking-tight text-white md:text-2xl">
               Models investigate. Rules authorize. Evidence proves.
             </p>
-            <p className="mt-2 text-sm text-emerald-100">
+            <p className="mt-2 text-sm text-slate-400">
               Every action is gated by the policy engine and appended to a replayable audit trail.
             </p>
           </div>
@@ -272,18 +300,18 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900">
+      <footer className="bg-[#06101D]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-10 md:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-emerald-500 text-white">
-              <Shield className="h-3.5 w-3.5" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-white">
+              <Landmark className="h-3.5 w-3.5" />
             </div>
-            <span className="text-sm font-semibold text-white">ClosePilot</span>
+            <span className="text-sm font-semibold tracking-tight text-white">ClosePilot</span>
           </div>
-          <div className="flex items-center gap-6 text-xs text-gray-400">
-            <Link className="hover:text-white" href="/explore">Command Center</Link>
-            <Link className="hover:text-white" href="/docs">Documentation</Link>
-            <Link className="hover:text-white" href="/evaluation">Evaluation Lab</Link>
+          <div className="flex items-center gap-6 text-xs text-slate-400">
+            <Link className="transition-colors hover:text-white" href="/explore">Command Center</Link>
+            <Link className="transition-colors hover:text-white" href="/docs">Documentation</Link>
+            <Link className="transition-colors hover:text-white" href="/evaluation">Evaluation Lab</Link>
             <span className="inline-flex items-center gap-1"><History className="h-3.5 w-3.5" /> Append-only audit trail</span>
           </div>
         </div>
