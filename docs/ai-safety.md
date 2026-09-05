@@ -99,3 +99,11 @@ Supported human actions:
 - request investigation
 
 Every action creates an audit event.
+
+## AI boundaries in analytics
+
+The deterministic analytic services do not outsource decisions to the LLM:
+
+- **Cash forecast**: the projection is computed entirely from records (bank cash, scheduled settlements, receivables, refunds, adjustments, risk holdback). The AI may only *commentate* by restating the computed figures — it cannot change the numbers `app/forecast/service.py`.
+- **Tax-line matcher**: the expected tax is derived from the record (taxable × rate, or gross − settlement − fee), never guessed by the model. AI analysis of an exception runs *after* the deterministic VERIFIED / EXCEPTION classification and may suggest a reason to a human reviewer, but it never changes the classification `app/reconciliation/tax_matcher.py`.
+- **Human review overrides**: a human may override a tax-line status via the review endpoint; the action is gated by the `X-User-Role` header and recorded as `TAX_MATCH_REVIEWED` in the audit trail.

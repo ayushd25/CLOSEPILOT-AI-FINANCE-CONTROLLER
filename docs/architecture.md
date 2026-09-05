@@ -112,3 +112,10 @@ apps/api/
 - No arbitrary tool execution
 - Financial domain logic never lives in frontend
 - Audit events are append-only
+
+## Analytic services
+
+Two deterministic surfaces sit on top of the same canonical financial model — the AI is advisory only:
+
+- **Forward Cash Forecast** — `app/forecast/service.py` computes a 7/14/30-day projection from current bank cash, scheduled settlements, receivables, refunds/adjustments/chargebacks, and a risk holdback scaled from open cases; a confidence band reflects data quality. `app/api/forecast.py` exposes `GET /forecast`. The optional AI commentary (`ai=true`) may only restate the computed figures.
+- **Tax-Line Matcher** — `app/reconciliation/tax_matcher.py` groups records per reference and derives the expected tax (rate-based `round(taxable × rate / 100)` or legacy `gross − settlement − fee`), classifies each line VERIFIED / EXCEPTION / HUMAN_REVIEW within tolerance, and links discrepancies into cases with evidence and audit events. `app/api/tax_lines.py` exposes run/list/metrics/detail/review under `/reconciliation/tax-lines`. AI explanation (if configured) runs only after deterministic classification and never alters it.

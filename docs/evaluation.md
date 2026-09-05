@@ -83,6 +83,7 @@ All methods run against the same hidden ground-truth dataset.
 - split settlement
 - refund/chargeback
 - fee/tax confusion
+- tax-line verified vs. tax-line mismatch (recorded tax ≠ expected tax)
 
 ## Deterministic repeatability
 
