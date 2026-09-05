@@ -212,13 +212,17 @@ OUTPUT FORMAT: Respond with a single JSON object: {{"answer": "..."}}. No markdo
         return self._final_answer(run, plan)
 
     def _reflect_run_counters(self, run: AgentRun, step: AgentPlanStep, result: dict[str, Any]) -> None:
-        if step.tool != "handle_mismatched_cases":
-            if step.tool == "investigate_cases":
-                run.executed_actions += int(result.get("investigated", 0))
+        if step.tool == "handle_mismatched_cases":
+            run.executed_actions += len(result.get("executed") or [])
+            run.staged_actions += len(result.get("staged_for_human_review") or [])
+            run.denied_actions += len(result.get("denied") or [])
             return
-        run.executed_actions += len(result.get("executed") or [])
-        run.staged_actions += len(result.get("staged_for_human_review") or [])
-        run.denied_actions += len(result.get("denied") or [])
+        if step.tool == "match_tax_lines":
+            run.executed_actions += int(result.get("verified") or 0)
+            run.staged_actions += int(result.get("exceptions") or 0) + int(result.get("human_review") or 0)
+            return
+        if step.tool == "investigate_cases":
+            run.executed_actions += int(result.get("investigated", 0))
 
     async def _call_tool(self, step: AgentPlanStep) -> dict[str, Any]:
         tool = getattr(self.executor, step.tool, None)

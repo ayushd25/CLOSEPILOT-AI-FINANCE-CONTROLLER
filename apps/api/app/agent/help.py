@@ -15,14 +15,16 @@ PLATFORM_PRINCIPLE = (
 
 def _pages_guide() -> str:
     return """PAGES / HOW TO NAVIGATE (sidebar, left):
-- Command Center (/) — dashboard overview: total records, reconciled, auto-resolved, exceptions, human-review, precision/recall, risk distribution, reconciliation runs & source health.
+- Command Center (/explore) — dashboard overview: total records, reconciled, auto-resolved, exceptions, human-review, precision/recall, risk distribution, reconciliation runs & source health. (The public landing page is at /.)
 - Reconciliation (/reconciliation) — run reconciliation and inspect the generated cases. Use 'Run Reconciliation' to generate/refresh cases from the loaded data, then filter by status/risk.
 - Exceptions (/exceptions) — a prioritized actionable list (EXCEPTION + agent-staged HUMAN_REVIEW cases), sorted by risk then amount. Click any case to open its investigator.
 - /exceptions/[caseId] (Exception Investigator) — full drill-down per case: summary, candidate matches, AI investigation, evidence, policy decision, and human approve/keep/reject actions.
+- Cash Forecast (/forecast) — forward cash forecast (7/14/30 days). Every number is deterministic from the loaded records (current bank cash + scheduled/estimated settlements, receivables, refunds, chargebacks, adjustments, risk holdback from open cases); the AI only explains the figures, never invents them.
+- Tax-Line Matcher (/tax) — deterministic tax-line matching (expected_tax = taxable_amount × tax_rate). Runs classify each line VERIFIED / EXCEPTION (TAX_DISCREPANCY) / HUMAN_REVIEW, wired into cases, evidence and audit.
 - Evaluation Lab (/evaluation) — generate synthetic datasets and run benchmarks against hidden ground truth (precision, recall, false auto-match, auto-resolution rate).
 - Evidence Graph (/evidence) — visual provenance graph of record relationships for a case (ReactFlow, color-coded record types).
 - Audit Trail (/audit) — append-only event timeline with full provenance; filter by a case id.
-- Data Sources (/sources) — generate synthetic financial records (20 reconciliation scenarios with hidden ground truth).
+- Data Sources (/sources) — generate synthetic financial records (22 reconciliation scenarios incl. tax lines, with hidden ground truth).
 - Policies (/policies) — view and edit the live ruleset (thresholds + rule toggles); changes apply immediately with no restart."""
 
 
@@ -53,6 +55,7 @@ What you can command (intent TASK): e.g. "handle all the mismatched transactions
 Safety: the agent NEVER mutates on its own. Its task tools:
   - handle_mismatched_cases: for each open case evaluates the policy; policy-eligible (LOW risk, within tolerance, sufficient evidence) cases are auto-closed; everything else is STAGED for HUMAN_REVIEW with an agent_note. Nothing is forced.
   - investigate_cases: runs AI investigations to produce proposals only (no status mutation).
+  - match_tax_lines: runs the deterministic tax-line matcher (expected_tax = taxable × rate), classifies each tax line VERIFIED / EXCEPTION / HUMAN_REVIEW and wires exceptions into cases + evidence + audit; AI only explains exceptions afterwards.
   Intents: the supervisor classifies your message as QUESTION (answers) or TASK (executes a plan through the executor). Progress is streamed as events and persisted to agent_runs/agent_events. Once a case is staged for human review, a human must approve/reject it in the Investigator."""
 
 
@@ -66,7 +69,7 @@ Changing a toggle such as auto_close_medium_risk changes whether MEDIUM-risk cas
 
 def _audit_evidence_guide() -> str:
     return """AUDIT & EVIDENCE:
-  Audit Trail (/audit): every meaningful event is logged: CASE_CREATED, AI_INVESTIGATION_STARTED/COMPLETED, POLICY_EVALUATED, AUTO_RESOLVED, HUMAN_APPROVED, HUMAN_REJECTED, EXCEPTION_CREATED, and agent events AGENT_AUTO_CLOSED / AGENT_STAGED_FOR_REVIEW, plus POLICY_UPDATED. Each event records the actor, timestamp, detail, case_id, and the policy decision, so you can replay full provenance for any case.
+  Audit Trail (/audit): every meaningful event is logged: CASE_CREATED, AI_INVESTIGATION_STARTED/COMPLETED, POLICY_EVALUATED, AUTO_RESOLVED, HUMAN_APPROVED, HUMAN_REJECTED, EXCEPTION_CREATED, and agent events AGENT_AUTO_CLOSED / AGENT_STAGED_FOR_REVIEW, PLUS_POLICY_UPDATED, and tax events TAX_MATCH_RUN / TAX_MATCH_VERIFIED / TAX_DISCREPANCY_DETECTED / TAX_LINE_MISSING / TAX_MATCH_REVIEWED. Each event records the actor, timestamp, detail, case_id, and the policy decision, so you can replay full provenance for any case.
   Evidence Graph (/evidence): shows how records relate to a case (payment → settlement → bank transaction, fees, taxes, refunds, etc.). Pass ?case={caseId} or type a case id and Load Graph."""
 
 

@@ -28,9 +28,10 @@ describe("Docs page", () => {
     expect(screen.getByRole("heading", { name: "2. Roles & permissions" })).toBeInTheDocument();
     expect(screen.getAllByText("FINANCE_CONTROLLER").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("heading", { name: "3. Analyze, verify & auto-evaluate transactions" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "4. Using the assistive agent" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "5. Policy configuration" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "6. Audit & evidence" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "7. Troubleshooting" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "4. Cash Forecast & Tax-line Matcher" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "5. Using the assistive agent" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "6. Policy configuration" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "7. Audit & evidence" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "8. Troubleshooting" })).toBeInTheDocument();
   });
 });

@@ -13,13 +13,17 @@ import {
   Shield,
   SlidersHorizontal,
   BookOpen,
+  TrendingUp,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Command Center", icon: LayoutDashboard },
+  { href: "/explore", label: "Command Center", icon: LayoutDashboard },
   { href: "/reconciliation", label: "Reconciliation", icon: FileSearch },
   { href: "/exceptions", label: "Exceptions", icon: AlertTriangle },
+  { href: "/forecast", label: "Cash Forecast", icon: TrendingUp },
+  { href: "/tax", label: "Tax-Line Matcher", icon: Receipt },
   { href: "/evaluation", label: "Evaluation Lab", icon: FlaskConical },
   { href: "/evidence", label: "Evidence Graph", icon: Share2 },
   { href: "/audit", label: "Audit Trail", icon: History },

@@ -34,10 +34,13 @@ const roles = [
 ];
 
 const sidebarIndex = [
-  { href: "/", label: "Command Center", desc: "Operational dashboard, KPIs, risk distribution." },
+  { href: "/", label: "Landing", desc: "Public landing page and live data summary." },
+  { href: "/explore", label: "Command Center", desc: "Operational dashboard, KPIs, risk distribution." },
   { href: "/reconciliation", label: "Reconciliation", desc: "Run reconciliation and inspect generated cases." },
   { href: "/exceptions", label: "Exceptions", desc: "Prioritized actionable cases (EXCEPTION + HUMAN_REVIEW)." },
   { href: "/exceptions/[caseId]", label: "Exception Investigator", desc: "Drill into a single case: investigate, evaluate, act." },
+  { href: "/forecast", label: "Cash Forecast", desc: "Deterministic 7/14/30-day forward cash projection." },
+  { href: "/tax", label: "Tax-Line Matcher", desc: "Verified tax lines vs. expected tax per record." },
   { href: "/evaluation", label: "Evaluation Lab", desc: "Benchmark your reconciliation against ground truth." },
   { href: "/evidence", label: "Evidence Graph", desc: "Visual record-provenance graph for a case." },
   { href: "/audit", label: "Audit Trail", desc: "Append-only event timeline with full provenance." },
@@ -77,10 +80,11 @@ export default function Docs() {
               <a href="#navigate" className="hover:underline">1. Navigating the platform</a>
               <a href="#roles" className="hover:underline">2. Roles & permissions</a>
               <a href="#workflow" className="hover:underline">3. Analyze / verify / auto-evaluate transactions</a>
-              <a href="#agent" className="hover:underline">4. Using the assistive agent</a>
-              <a href="#policies" className="hover:underline">5. Policy configuration</a>
-              <a href="#audit" className="hover:underline">6. Audit & evidence</a>
-              <a href="#troubleshoot" className="hover:underline">7. Troubleshooting</a>
+              <a href="#forecast-tax" className="hover:underline">4. Cash forecast & tax-line matcher</a>
+              <a href="#agent" className="hover:underline">5. Using the assistive agent</a>
+              <a href="#policies" className="hover:underline">6. Policy configuration</a>
+              <a href="#audit" className="hover:underline">7. Audit & evidence</a>
+              <a href="#troubleshoot" className="hover:underline">8. Troubleshooting</a>
             </div>
           </CardContent>
         </Card>
@@ -152,15 +156,41 @@ export default function Docs() {
             <code>AUTO_CLOSE</code>) or must go to a human (<code>HUMAN_REVIEW</code>). By default, auto-close needs LOW risk,
             confidence at/above the threshold, sufficient evidence, a discrepancy within tolerance, and a single candidate.
           </Step>
-          <Step n={5} title="Act & audit — Actions">
+          <Step n={6} title="Act & audit — Actions">
             If eligible, use <strong>Approve &amp; Close</strong>; otherwise <strong>Keep Exception</strong> or{" "}
             <strong>Reject Proposal</strong>. Every action is recorded to the <strong>Audit Trail</strong> with the policy
             decision, so you can replay exactly why any case was resolved.
           </Step>
         </div>
 
+        {/* Forecast & Tax */}
+        <SectionTitle id="forecast-tax" icon={Compass}>4. Cash Forecast & Tax-line Matcher</SectionTitle>
+        <p className="text-sm text-gray-600">
+          Two deterministic analytic surfaces built on the same records — no invented numbers.
+        </p>
+        <Card className="mt-3">
+          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-md border border-gray-200 p-3">
+              <p className="text-sm font-semibold text-gray-800">Cash Forecast (/forecast)</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Projects cash forward 7/14/30 days from current bank balance, scheduled settlements, receivables,
+                refunds/adjustments/chargebacks, and suspends risk holdback from open cases. The AI adds commentary
+                that only restates the computed figures. A confidence band reflects data quality.
+              </p>
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              <p className="text-sm font-semibold text-gray-800">Tax-line Matcher (/tax)</p>
+              <p className="mt-1 text-xs text-gray-600">
+                For every tax-bearing line, expected tax is derived (gross − settlement − fee, or taxable × rate) and
+                compared to the recorded tax within tolerance. Verified matches close; discrepancies become
+                exceptions with evidence — a human can review and override via the <code>X-User-Role</code> header.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* 4. Agent */}
-        <SectionTitle id="agent" icon={Bot}>4. Using the assistive agent</SectionTitle>
+        <SectionTitle id="agent" icon={Bot}>5. Using the assistive agent</SectionTitle>
         <Card className="mt-3">
           <CardContent>
             <p className="text-sm text-gray-600">
@@ -198,7 +228,7 @@ export default function Docs() {
         </Card>
 
         {/* 5. Policies */}
-        <SectionTitle id="policies" icon={SlidersHorizontal}>5. Policy configuration</SectionTitle>
+        <SectionTitle id="policies" icon={SlidersHorizontal}>6. Policy configuration</SectionTitle>
         <p className="text-sm text-gray-600">
           Open <strong>/policies</strong> to view and edit the live ruleset. Changes apply immediately to the next evaluation —
           no restart. Adjust <strong>thresholds</strong> (confidence, tolerance, high-impact amount, evidence count, match score)
@@ -207,7 +237,7 @@ export default function Docs() {
         </p>
 
         {/* 6. Audit & evidence */}
-        <SectionTitle id="audit" icon={ScrollText}>6. Audit &amp; evidence</SectionTitle>
+        <SectionTitle id="audit" icon={ScrollText}>7. Audit &amp; evidence</SectionTitle>
         <p className="text-sm text-gray-600">
           <strong>/audit</strong> is an append-only timeline: case creation, AI investigations, policy evaluations, human
           approvals/rejections, and agent actions (<code>AGENT_AUTO_CLOSED</code>, <code>AGENT_STAGED_FOR_REVIEW</code>,{" "}
@@ -216,7 +246,7 @@ export default function Docs() {
         </p>
 
         {/* 7. Troubleshooting */}
-        <SectionTitle id="troubleshoot" icon={HelpCircle}>7. Troubleshooting</SectionTitle>
+        <SectionTitle id="troubleshoot" icon={HelpCircle}>8. Troubleshooting</SectionTitle>
         <Card className="mt-3">
           <CardContent>
             <p className="text-sm text-gray-600">

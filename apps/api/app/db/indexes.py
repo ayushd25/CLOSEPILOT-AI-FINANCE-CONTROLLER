@@ -32,3 +32,8 @@ async def ensure_indexes() -> None:
     await db.agent_runs.create_index([("created_at", -1)])
     await db.agent_events.create_index([("run_id", 1)])
     await db.agent_events.create_index([("created_at", 1)])
+
+    await db.tax_matches.create_index([("match_id", 1)], unique=True)
+    await db.tax_matches.create_index([("status", 1)])
+    await db.tax_matches.create_index([("transaction_id", 1)])
+    await db.tax_matches.create_index([("created_at", -1)])

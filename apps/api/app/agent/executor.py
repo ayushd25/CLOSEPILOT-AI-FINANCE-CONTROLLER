@@ -45,6 +45,9 @@ class AgentExecutor:
         open_exceptions = await db.reconciliation_cases.count_documents(
             {"status": {"$in": ["UNPROCESSED", "EXCEPTION", "HUMAN_REVIEW"]}}
         )
+        tax_checked = await db.tax_matches.count_documents({})
+        tax_exceptions = await db.tax_matches.count_documents({"status": "EXCEPTION"})
+        tax_verified = await db.tax_matches.count_documents({"status": "VERIFIED"})
         return {
             "total_records": total_records,
             "total_cases": total_cases,
@@ -54,6 +57,9 @@ class AgentExecutor:
             "exceptions": exceptions,
             "unmatched": unmatched,
             "open_cases": open_exceptions,
+            "tax_checked": tax_checked,
+            "tax_verified": tax_verified,
+            "tax_exceptions": tax_exceptions,
         }
 
     async def list_cases(self, args: dict[str, Any] | None = None) -> dict:
@@ -160,6 +166,21 @@ class AgentExecutor:
                 degraded.append(case_id)
         return {"investigated": investigated, "degraded_to_review": degraded}
 
+    async def match_tax_lines(self, args: dict[str, Any] | None = None) -> dict:
+        """Run the deterministic tax-line matcher over loaded records.
+
+        Applies ``expected_tax = round(taxable_amount * tax_rate / 100)`` and
+        classifies each tax line VERIFIED / EXCEPTION / HUMAN_REVIEW; exceptions
+        are linked to reconciliation cases + evidence + audit, and may get an AI
+        *explanation* (never a status change).
+        """
+        from app.reconciliation.tax_matcher import TaxLineMatcher
+
+        args = args or {}
+        matcher = TaxLineMatcher()
+        result = await matcher.run(run_ai=bool(args.get("ai", True)))
+        return {k: v for k, v in result.items() if k != "match_ids"}
+
     # ------------------------------------------------------------------ #
     # Internals                                                          #
     # ------------------------------------------------------------------ #
@@ -248,6 +269,7 @@ TOOL_REGISTRY: dict[str, str] = {
     "list_runs": "Read-only. List recent reconciliation runs.",
     "handle_mismatched_cases": "AUTHORISED ACTION. Auto-resolve policy-eligible open cases; stage the rest for human review. Args: case_ids (optional list) or status. Safe: only policy-eligible cases mutate.",
     "investigate_cases": "AUTHORISED ACTION. Run AI investigation on open cases (proposes only). Args: case_ids or limit.",
+    "match_tax_lines": "AUTHORISED ACTION. Run the deterministic tax-line matcher: expected_tax = taxable × rate, classify each line VERIFIED/EXCEPTION/HUMAN_REVIEW, link exceptions to cases + evidence + audit. Args: ai (bool).",
 }
 
 
