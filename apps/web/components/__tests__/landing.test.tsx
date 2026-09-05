@@ -55,6 +55,7 @@ describe("Landing page", () => {
     apiGet.mockImplementation(() => Promise.resolve({}));
     render(<Landing />);
     expect(await screen.findByText(/No data loaded yet/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Generate a dataset/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Generate dataset/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Open Data Sources/i })).toBeInTheDocument();
   });
 });

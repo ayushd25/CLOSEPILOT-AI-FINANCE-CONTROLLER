@@ -112,18 +112,31 @@ function LiveStrip() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [tax, setTax] = useState<TaxMetrics | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const load = async () => {
+    const [s, f, t] = await Promise.allSettled([
+      api.get<Summary>("/dashboard/summary"),
+      api.get<Forecast>("/forecast?horizon=7&ai=false"),
+      api.get<TaxMetrics>("/reconciliation/tax-lines/metrics"),
+    ]);
+    if (s.status === "fulfilled") setSummary(s.value);
+    if (f.status === "fulfilled") setForecast(f.value);
+    if (t.status === "fulfilled") setTax(t.value);
+  };
+
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      await api.post("/synthetic/generate", { n_cases: 100, seed: 42 });
+      await load();
+    } catch (e) {
+      console.error(e);
+    }
+    setGenerating(false);
+  };
 
   useEffect(() => {
-    const load = async () => {
-      const [s, f, t] = await Promise.allSettled([
-        api.get<Summary>("/dashboard/summary"),
-        api.get<Forecast>("/forecast?horizon=7&ai=false"),
-        api.get<TaxMetrics>("/reconciliation/tax-lines/metrics"),
-      ]);
-      if (s.status === "fulfilled") setSummary(s.value);
-      if (f.status === "fulfilled") setForecast(f.value);
-      if (t.status === "fulfilled") setTax(t.value);
-    };
     load();
   }, []);
 
@@ -134,7 +147,12 @@ function LiveStrip() {
         <p className="text-sm text-slate-300">
           No data loaded yet. Generate a dataset to unlock live numbers on this page.
         </p>
-        <Link href="/sources" className={cn(ctaSm, ctaPrimary, "mt-3")}>Generate a dataset →</Link>
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <button onClick={generate} disabled={generating} className={cn(ctaSm, ctaPrimary, "h-9 px-4", generating && "opacity-70")}>
+            {generating ? "Generating…" : "Generate dataset"}
+          </button>
+          <Link href="/sources" className={cn(ctaSm, ctaOutline, "h-9 px-4")}>Open Data Sources →</Link>
+        </div>
       </div>
     );
   }

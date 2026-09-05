@@ -14,7 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, TrendingUp, AlertTriangle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { RefreshCw, TrendingUp, AlertTriangle, CheckCircle2, Database, Sparkles } from "lucide-react";
 
 interface Summary {
   total_records: number;
@@ -52,6 +53,7 @@ export default function CommandCenter() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [trends, setTrends] = useState<Trends | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -65,24 +67,63 @@ export default function CommandCenter() {
     setLoading(false);
   };
 
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      await api.post("/synthetic/generate", { n_cases: 100, seed: 42 });
+      await load();
+    } catch (e) {
+      console.error(e);
+    }
+    setGenerating(false);
+  };
+
   useEffect(() => {
     load();
   }, []);
 
   return (
     <DashboardLayout>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Command Center</h1>
-          <p className="text-sm text-gray-500">Live operational metrics from real backend data</p>
+<div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+              <Database className="h-5 w-5 text-gray-500" />
+              Command Center
+            </h1>
+            <p className="text-sm text-gray-500">Live operational metrics from real backend data</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={load}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={load}>
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
-      </div>
 
-      {loading && !summary ? (
+        {summary && (summary.total_records ?? 0) === 0 && (
+          <Card className="mb-6 border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-transparent">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-emerald-800">
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                No data loaded yet
+              </CardTitle>
+              <CardDescription>
+                Generate a synthetic dataset with hidden ground truth to start reconciling, forecasting and auditing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              <Button variant="success" size="sm" onClick={generate} disabled={generating}>
+                {generating ? "Generating..." : "Generate dataset"}
+              </Button>
+              <Link
+                href="/sources"
+                className="inline-flex h-8 items-center justify-center rounded-lg border border-input bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                Customize parameters →
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {loading && !summary ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {[...Array(8)].map((_, i) => (
             <Skeleton key={i} className="h-24" />
