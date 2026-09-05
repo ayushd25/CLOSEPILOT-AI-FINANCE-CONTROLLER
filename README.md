@@ -6,6 +6,20 @@ ClosePilot is an AI Finance Controller for **Razorpay Buildathon 2026 (Track 04)
 
 ---
 
+## Screenshots
+
+App overview (shown below in demo-flow order: **Landing → Command Center → Sources → Reconciliation → Exceptions → Forecast**).
+
+| | |
+|---|---|
+| ![Landing](docs/screenshots/screenshot-105.png) | ![Command Center](docs/screenshots/screenshot-106.png) |
+| ![Data Sources](docs/screenshots/screenshot-107.png) | ![Reconciliation](docs/screenshots/screenshot-109.png) |
+| ![Exceptions](docs/screenshots/screenshot-111.png) | ![Cash Forecast](docs/screenshots/screenshot-112.png) |
+
+> To add/swap screenshots, drop PNGs into `docs/screenshots/` and update the file references above (keep the same file names to keep captions aligned).
+
+---
+
 ## Core principle
 
 **LLM ≠ authority.**
