@@ -135,7 +135,7 @@ No external services are required — the backend uses an in-memory store.
 ```bash
 cd apps/api
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate (Linux) or .venv\Scripts\Activate.ps1 (for windows)
 pip install -r requirements.txt
 
 # copy .env to set credentials (see env section below)
