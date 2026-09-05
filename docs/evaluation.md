@@ -17,7 +17,7 @@ root_cause
 related_record_ids
 ```
 
-Ground truth is stored in a separate MongoDB collection (never exposed to AI).
+Ground truth is stored in a separate collection (never exposed to AI).
 
 ## Metrics
 

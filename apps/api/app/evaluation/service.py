@@ -22,12 +22,7 @@ class EvaluationService:
         dataset_id: str,
         methods: Optional[list[str]] = None,
     ) -> dict:
-        dataset = None
-        try:
-            from bson.objectid import ObjectId
-            dataset = await self.db.synthetic_datasets.find_one({"_id": ObjectId(dataset_id)})
-        except Exception:
-            dataset = None
+        dataset = await self.db.synthetic_datasets.find_one({"_id": dataset_id})
         if not dataset:
             dataset = await self.db.synthetic_datasets.find_one({"name": dataset_id})
         if not dataset:

@@ -1,9 +1,8 @@
 """Agent unit + integration tests.
 
 Unit tests cover intent classification, plan parsing, and JSON recovery
-without a database. Integration tests exercise the authorised executor
-(policy-gated auto-close vs stage-for-review) against a real MongoDB and are
-skipped when it is unavailable.
+without a store. Integration tests exercise the authorised executor
+(policy-gated auto-close vs stage-for-review) against the in-memory store.
 """
 
 import pytest
@@ -154,30 +153,9 @@ async def test_unknown_tool_calls_field_missing():
 
 
 # ------------------------------------------------------------------ #
-# Integration tests (MongoDB required; skipped otherwise)            #
+# Integration tests (against the in-memory store)                    #
 # ------------------------------------------------------------------ #
 pytestmark = pytest.mark.asyncio
-
-MONGODB_AVAILABLE = None
-
-
-async def _mongodb_available() -> bool:
-    try:
-        from app.db import Database
-
-        db = Database.get_db()
-        await db.command("ping")
-        return True
-    except Exception:
-        return False
-
-
-async def _require_mongodb():
-    global MONGODB_AVAILABLE
-    if MONGODB_AVAILABLE is None:
-        MONGODB_AVAILABLE = await _mongodb_available()
-    if not MONGODB_AVAILABLE:
-        pytest.skip("MongoDB not available; skipping agent integration test")
 
 
 async def _fresh_db():
@@ -192,7 +170,6 @@ async def _fresh_db():
 
 
 async def test_executor_gates_by_policy_and_stages_rest():
-    await _require_mongodb()
     db = await _fresh_db()
 
     from app.agent.executor import AgentExecutor
@@ -262,7 +239,6 @@ async def test_executor_gates_by_policy_and_stages_rest():
 
 
 async def test_agent_run_persists_events():
-    await _require_mongodb()
     db = await _fresh_db()
 
     from app.agent.supervisor import AgentSupervisor

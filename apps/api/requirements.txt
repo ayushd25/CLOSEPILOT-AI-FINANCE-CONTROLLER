@@ -2,7 +2,6 @@ fastapi
 uvicorn[standard]
 pydantic
 pydantic-settings
-motor
 httpx
 langchain
 langchain-groq

@@ -1,31 +1,27 @@
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-from app.config import settings
+from app.db.memory import MemoryDatabase, MemoryCollection
 
 
 class Database:
-    _client: AsyncIOMotorClient | None = None
-    _db: AsyncIOMotorDatabase | None = None
+    _db: MemoryDatabase | None = None
 
     @classmethod
-    def connect(cls) -> AsyncIOMotorDatabase:
-        if cls._client is None:
-            cls._client = AsyncIOMotorClient(settings.MONGODB_URI)
-            cls._db = cls._client[settings.MONGODB_DB]
-        return cls._db
-
-    @classmethod
-    def get_db(cls) -> AsyncIOMotorDatabase:
+    def connect(cls) -> MemoryDatabase:
         if cls._db is None:
-            return cls.connect()
+            cls._db = MemoryDatabase()
         return cls._db
+
+    @classmethod
+    def get_db(cls) -> MemoryDatabase:
+        return cls.connect()
 
     @classmethod
     async def close(cls) -> None:
-        if cls._client is not None:
-            cls._client.close()
-            cls._client = None
-            cls._db = None
+        cls._db = None
+
+    @classmethod
+    def reset(cls) -> None:
+        cls._db = MemoryDatabase()
 
 
-def get_db() -> AsyncIOMotorDatabase:
+def get_db() -> MemoryDatabase:
     return Database.get_db()

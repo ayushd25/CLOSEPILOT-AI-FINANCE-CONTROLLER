@@ -27,12 +27,9 @@ request_id_middleware_enabled = app_state = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        Database.connect()
-        await ensure_indexes()
-        logger.info("Connected to MongoDB")
-    except Exception as e:
-        logger.warning(f"MongoDB not available at startup: {e}")
+    Database.connect()
+    await ensure_indexes()
+    logger.info("In-memory store initialized")
     yield
     await Database.close()
 

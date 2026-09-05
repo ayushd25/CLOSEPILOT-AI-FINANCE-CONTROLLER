@@ -3,8 +3,6 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     APP_ENV: str = "development"
-    MONGODB_URI: str = "mongodb://localhost:27017"
-    MONGODB_DB: str = "closepilot"
 
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "openai/gpt-oss-120b"

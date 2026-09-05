@@ -38,7 +38,7 @@ The LLM may investigate, interpret, explain, rank evidence, and propose an actio
 Required flow:
 
 ```
-LLM → typed proposal → schema validation → policy engine → authorized service → database
+LLM → typed proposal → schema validation → policy engine → authorized service → store
 ```
 
 ## Backend
@@ -46,7 +46,7 @@ LLM → typed proposal → schema validation → policy engine → authorized se
 - Python 3.12+
 - FastAPI
 - Pydantic
-- MongoDB (motor async driver)
+- In-memory document store (`app/db/memory.py`) — Mongo-like async API, no external database
 - pytest
 - structured logging
 

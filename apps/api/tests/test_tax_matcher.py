@@ -114,12 +114,6 @@ async def test_tax_match_run_persists_and_links_cases():
     from app.db import Database
 
     db = Database.get_db()
-    try:
-        await db.command("ping")
-    except Exception:
-        import pytest
-        pytest.skip("MongoDB not available; skipping integration test")
-
     for collection in ("financial_records", "reconciliation_cases", "tax_matches", "evidence_items", "audit_events"):
         await db[collection].delete_many({})
 

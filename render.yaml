@@ -3,12 +3,14 @@
 #   1. Push this repo to GitHub.
 #   2. In Render: New +  > Blueprint  and select the repo.
 #   3. After the service is created, open it and set the `sync: false` vars:
-#        MONGODB_URI   -> your MongoDB Atlas connection string
 #        GROQ_API_KEY  -> your Groq key (optional; AI degrades to HUMAN_REVIEW)
 #        CORS_ORIGINS  -> the URL of the deployed frontend, e.g.
 #                         https://closepilot.vercel.app
 #   4. Frontend lives on Vercel (root directory: apps/web, env
 #      NEXT_PUBLIC_API_URL = this service's URL, e.g. https://closepilot-api.onrender.com).
+#
+# No database is required: the API uses an in-memory store populated with
+# synthetic data. Data resets whenever the service restarts.
 services:
   - type: web
     name: closepilot-api
@@ -18,10 +20,6 @@ services:
     autoDeploy: true
     healthCheckPath: /health
     envVars:
-      - key: MONGODB_URI
-        sync: false
-      - key: MONGODB_DB
-        value: closepilot
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL

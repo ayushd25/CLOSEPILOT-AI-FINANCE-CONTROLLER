@@ -4,12 +4,12 @@
 
 > Models investigate. Rules authorize. Evidence proves.
 
-The AI investigator is not an authority. It can inspect data and propose an action, but cannot directly close cases, write to MongoDB, execute arbitrary SQL or Mongo queries, or approve money movement.
+The AI investigator is not an authority. It can inspect data and propose an action, but cannot directly close cases, write to the store, execute arbitrary SQL, or approve money movement.
 
 ## Required flow
 
 ```
-LLM → typed proposal → schema validation → policy engine → authorized service → database
+LLM → typed proposal → schema validation → policy engine → authorized service → store
 ```
 
 ## AI responsibilities
@@ -25,9 +25,8 @@ LLM → typed proposal → schema validation → policy engine → authorized se
 
 ## AI must NOT
 
-- write to MongoDB
+- write to the store
 - execute arbitrary SQL
-- execute arbitrary Mongo queries
 - call unrestricted tools
 - approve money movement
 - directly close cases

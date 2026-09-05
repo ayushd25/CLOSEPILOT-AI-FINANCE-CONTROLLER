@@ -7,27 +7,6 @@ from app.policy.engine import PolicyEngine
 
 pytestmark = pytest.mark.asyncio
 
-MONGODB_AVAILABLE = None
-
-
-async def _mongodb_available() -> bool:
-    try:
-        from app.db import Database
-
-        db = Database.get_db()
-        await db.command("ping")
-        return True
-    except Exception:
-        return False
-
-
-async def _require_mongodb():
-    global MONGODB_AVAILABLE
-    if MONGODB_AVAILABLE is None:
-        MONGODB_AVAILABLE = await _mongodb_available()
-    if not MONGODB_AVAILABLE:
-        pytest.skip("MongoDB not available; skipping policy config integration test")
-
 
 async def test_default_config_matches_engine_builtins():
     cfg = default_policy_config()
@@ -81,7 +60,6 @@ async def test_engine_toggle_gates_medium_risk():
 
 
 async def test_repository_seeds_and_persists_update():
-    await _require_mongodb()
     db = Database.get_db()
     await db.policy_config.delete_many({})
     await db.audit_events.delete_many({"event_type": "POLICY_UPDATED"})

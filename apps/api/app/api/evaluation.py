@@ -31,11 +31,8 @@ async def list_evaluation_runs(limit: int = 20):
 @router.get("/runs/{run_id}")
 async def get_evaluation_run(run_id: str):
     db = Database.get_db()
-    from bson.objectid import ObjectId
-
-    try:
-        doc = await db.evaluation_runs.find_one({"_id": ObjectId(run_id)})
-    except Exception:
+    doc = await db.evaluation_runs.find_one({"_id": run_id})
+    if not doc:
         doc = await db.evaluation_runs.find_one({"run_id": run_id})
     if not doc:
         raise HTTPException(status_code=404, detail=f"Evaluation run {run_id} not found")

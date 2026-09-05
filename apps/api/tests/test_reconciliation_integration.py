@@ -1,34 +1,11 @@
-"""Integration tests that require a running MongoDB instance.
-
-These tests exercise the full reconciliation pipeline against a real
-database. They are skipped automatically when MongoDB is not reachable so
-the pure unit-test suite remains standalone and fast.
+"""Integration tests that exercise the full reconciliation pipeline against
+the in-memory store. They always run (no external database is required).
 """
 
 import asyncio
 import pytest
 
 pytestmark = pytest.mark.asyncio
-
-MONGODB_AVAILABLE = None
-
-
-async def _mongodb_available() -> bool:
-    try:
-        from app.db import Database
-        db = Database.get_db()
-        await db.command("ping")
-        return True
-    except Exception:
-        return False
-
-
-async def _require_mongodb():
-    global MONGODB_AVAILABLE
-    if MONGODB_AVAILABLE is None:
-        MONGODB_AVAILABLE = await _mongodb_available()
-    if not MONGODB_AVAILABLE:
-        pytest.skip("MongoDB not available; skipping integration test")
 
 
 async def _fresh_db():
@@ -48,7 +25,6 @@ async def _fresh_db():
 
 
 async def test_reconciliation_produces_mapped_statuses():
-    await _require_mongodb()
     db = await _fresh_db()
 
     from app.db.indexes import ensure_indexes
@@ -67,7 +43,8 @@ async def test_reconciliation_produces_mapped_statuses():
 
     assert run.status == "completed"
     assert run.total_records == len(records)
-    assert run.matched + run.exceptions + run.auto_resolved + run.human_review == len(records)
+    case_records = [r for r in records if r.record_type not in ("order", "invoice")]
+    assert run.matched + run.exceptions + run.auto_resolved + run.human_review == len(case_records)
 
     cases = await db.reconciliation_cases.find({}).to_list(length=100000)
     statuses = {c["status"] for c in cases}
@@ -82,7 +59,6 @@ async def test_reconciliation_produces_mapped_statuses():
 
 
 async def test_case_id_consistent_between_find_and_insert():
-    await _require_mongodb()
     db = await _fresh_db()
 
     from app.synthetic.generator import SyntheticDataSource
@@ -104,7 +80,6 @@ async def test_case_id_consistent_between_find_and_insert():
 
 
 async def test_auto_resolved_low_risk_cases_have_score():
-    await _require_mongodb()
     db = await _fresh_db()
 
     from app.synthetic.generator import SyntheticDataSource

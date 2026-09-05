@@ -12,9 +12,5 @@ async def health():
 
 @router.get("/ready")
 async def ready():
-    try:
-        db = Database.get_db()
-        await db.command("ping")
-        return {"status": "ready", "mongo": "connected"}
-    except Exception:
-        return {"status": "degraded", "mongo": "unavailable"}
+    Database.get_db()
+    return {"status": "ready", "store": "in-memory"}
