@@ -143,15 +143,21 @@ function LiveStrip() {
   const hasData = (summary?.total_records ?? 0) > 0;
   if (!hasData) {
     return (
-      <div className="mx-auto mt-10 max-w-2xl rounded-xl border border-dashed border-white/15 bg-white/5 px-6 py-5 text-center backdrop-blur-sm">
-        <p className="text-sm text-slate-300">
-          No data loaded yet. Generate a dataset to unlock live numbers on this page.
+      <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-emerald-400/40 bg-gradient-to-b from-emerald-500/15 via-white/5 to-white/5 px-6 py-8 text-center backdrop-blur-sm">
+        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">No data loaded yet</p>
+        <p className="mt-2 text-base font-medium text-slate-100">
+          Don&apos;t have data? Click below to generate a synthetic dataset instantly.
         </p>
-        <div className="mt-3 flex items-center justify-center gap-3">
-          <button onClick={generate} disabled={generating} className={cn(ctaSm, ctaPrimary, "h-9 px-4", generating && "opacity-70")}>
-            {generating ? "Generating…" : "Generate dataset"}
+        <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <button
+            onClick={generate}
+            disabled={generating}
+            className={cn(ctaLg, ctaPrimary, generating && "opacity-70")}
+          >
+            {generating ? "Generating…" : "Generate synthetic data"}
+            <ArrowRight className="ml-2 h-4 w-4" />
           </button>
-          <Link href="/sources" className={cn(ctaSm, ctaOutline, "h-9 px-4")}>Open Data Sources →</Link>
+          <Link href="/sources" className={cn(ctaLg, ctaOutline, "px-5")}>Customize parameters →</Link>
         </div>
       </div>
     );

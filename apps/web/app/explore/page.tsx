@@ -99,23 +99,25 @@ export default function CommandCenter() {
         </div>
 
         {summary && (summary.total_records ?? 0) === 0 && (
-          <Card className="mb-6 border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-transparent">
+          <Card className="relative mb-6 overflow-hidden border-emerald-500/40 bg-gradient-to-r from-emerald-50 via-white to-transparent shadow-[0_4px_24px_rgba(16,185,129,0.12)]">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" aria-hidden />
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-emerald-800">
                 <Sparkles className="h-4 w-4 text-emerald-600" />
                 No data loaded yet
               </CardTitle>
               <CardDescription>
-                Generate a synthetic dataset with hidden ground truth to start reconciling, forecasting and auditing.
+                Don&apos;t have data? Generate a synthetic dataset with one click — it provides payments,
+                settlements and bank transactions with hidden ground truth.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap items-center gap-3">
-              <Button variant="success" size="sm" onClick={generate} disabled={generating}>
-                {generating ? "Generating..." : "Generate dataset"}
+              <Button variant="success" size="default" onClick={generate} disabled={generating} className="glow-emerald">
+                {generating ? "Generating…" : "Generate dataset"}
               </Button>
               <Link
                 href="/sources"
-                className="inline-flex h-8 items-center justify-center rounded-lg border border-input bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-input bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 Customize parameters →
               </Link>
